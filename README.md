@@ -8,3 +8,5 @@ SE Challenge for Local Measure
 - $ terraform init
 - $ terraform plan
 - $ terraform apply -auto-approve
+
+Force change
