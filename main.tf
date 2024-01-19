@@ -22,7 +22,7 @@ resource "aws_connect_hours_of_operation" "hours_of_operation" {
   instance_id = aws_connect_instance.instance.id
   name        = "${var.common_name} Office Hours"
   description = "Demo Test Office Hours"
-  time_zone   = "EST"
+  time_zone   = "SAST"
   config {
     day = "MONDAY"
     end_time {
