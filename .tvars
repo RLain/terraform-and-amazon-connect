@@ -1,5 +1,0 @@
-instance_alias = "demo-call-centre"
-identity_management_type = "CONNECT_MANAGED"
-common_name = "challenge-local-measure"
-lambda_function_arn = "arn:aws:lambda:af-south-1:141080742224:function:challenge-local-measure-demo"
-directory_id="d-906e9d3f9d"
