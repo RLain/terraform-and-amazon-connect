@@ -2,19 +2,22 @@
 
 resource "aws_connect_instance" "instance" {
   identity_management_type = var.identity_management_type
-  directory_id = var.directory_id
   inbound_calls_enabled    = true
   instance_alias           = var.instance_alias
   outbound_calls_enabled   = true
   contact_flow_logs_enabled = true
 }
 
+output "aws_connect_instance_id" {
+  value = aws_connect_instance.instance.id
+}
+
 # Lambda function association
 
-resource "aws_connect_lambda_function_association" "lambda_assoc" {
-  function_arn = var.lambda_function_arn
-  instance_id  = aws_connect_instance.instance.id
-}
+# resource "aws_connect_lambda_function_association" "lambda_assoc" {
+#   function_arn = var.lambda_function_arn
+#   instance_id  = aws_connect_instance.instance.id
+# }
 
 # Hours of Operation
 
@@ -22,7 +25,7 @@ resource "aws_connect_hours_of_operation" "hours_of_operation" {
   instance_id = aws_connect_instance.instance.id
   name        = "${var.common_name} Office Hours"
   description = "Demo Test Office Hours"
-  time_zone   = "SAST"
+  time_zone   = "Africa/Johannesburg"
   config {
     day = "MONDAY"
     end_time {
@@ -64,25 +67,28 @@ tags = {
 
 # Routing profile
 
-resource "aws_connect_routing_profile" "routing_profile" {
-  instance_id               = aws_connect_instance.instance.id
-  name                      = var.common_name
-  default_outbound_queue_id = aws_connect_queue.queue.queue_id
-  description               = "${var.common_name} Routing Profile"
-media_concurrencies {
-    channel     = "VOICE"
-    concurrency = 1
-  }
-queue_configs {
-    channel  = "VOICE"
-    delay    = 0
-    priority = 1
-    queue_id = aws_connect_queue.queue.queue_id
-  }
-tags = {
-    "Name" = var.common_name,
-  }
-}
+# resource "aws_connect_routing_profile" "elective_routing_profile" {
+#   instance_id = aws_connect_instance.instance.id
+#   name        = "Elective Call Presentation Profile"
+#   description = "Elective Call Presentation Profile"
+#   default_outbound_queue_id = aws_connect_queue.queue.id
+#   media_concurrencies {
+#     channel = "VOICE"
+#     concurrency = 1
+#   }
+# }
+
+# resource "aws_connect_routing_profile" "automatic_routing_profile" {
+#   instance_id  = aws_connect_instance.instance.id
+#   name        = "Automatic Call Presentation Profile"
+#   description = "Automatic Call Presentation Profile"
+#   default_outbound_queue_id = aws_connect_queue.queue.id
+#     media_concurrencies {
+#     channel = "VOICE"
+#     concurrency = 1
+#   }
+# }
+
 
 # Security Profile
 
@@ -101,114 +107,135 @@ tags = {
 
 # User
 
-resource "aws_connect_user" "user" {
-  instance_id        = aws_connect_instance.instance.id
-  name               = "bob@test.com"
-  password           = "Password123"
-  routing_profile_id = aws_connect_routing_profile.routing_profile.routing_profile_id
-security_profile_ids = [
-    aws_connect_security_profile.security_profile.security_profile_id
-  ]
-identity_info {
-    first_name = "Bob"
-    last_name  = "Test"
-  }
-phone_config {
-    after_contact_work_time_limit = 0
-    phone_type                    = "SOFT_PHONE"
-  }
-}
+# resource "aws_connect_user" "user" {
+#   instance_id        = aws_connect_instance.instance.id
+#   name               = "RLain"
+#   password           = "${var.password}"
+#   routing_profile_id = "${var.routing_profile_id}"
+#   # routing_profile_id = aws_connect_routing_profile.elective_routing_profile.routing_profile_id
+#   security_profile_ids = [
+#     aws_connect_security_profile.security_profile.security_profile_id
+#   ]
+#   identity_info {
+#     first_name = "Rebecca"
+#     last_name  = "Lain"
+#   }
+#   phone_config {
+#     after_contact_work_time_limit = 0
+#     phone_type                    = "SOFT_PHONE"
+#   }
+# }
+
 
 # Contact flow 
 # The content of the contact flow should be in JSON format in Amazon Contact Flow language. 
 # For more information, see Amazon Connect Flow language in the Amazon Connect Administrator Guide.
 
-resource "aws_connect_contact_flow" "demo_test" {
-  instance_id  = aws_connect_instance.instance.id
-  name         = var.common_name
-  description  = "Test Contact Flow for Terraform"
-  type         = var.contact_flow_type
-  content     = <<JSON
-{
-    "Version": "2019-10-30",
-    "StartAction": "4e2b5f43-8379-4b90-852b-930de11591de",
-    "Metadata": {
-      "entryPointPosition": {
-        "x": 20,
-        "y": 20
-      },
-      "snapToGrid": false,
-      "ActionMetadata": {
-        "ac3808f0-8313-483a-ae5f-47e4acb83a53": {
-          "position": {
-            "x": 806,
-            "y": 194
-          }
-        },
-        "4e2b5f43-8379-4b90-852b-930de11591de": {
-          "position": {
-            "x": 196,
-            "y": 37
-          },
-          "useDynamic": false
-        },
-        "c2b9d7f7-36d3-4180-86aa-3f1957870e1a": {
-          "position": {
-            "x": 463,
-            "y": 38.599998474121094
-          },
-          "dynamicMetadata": {},
-          "useDynamic": false
-        }
-      }
-    },
-    "Actions": [
-      {
-        "Identifier": "ac3808f0-8313-483a-ae5f-47e4acb83a53",
-        "Type": "DisconnectParticipant",
-        "Parameters": {},
-        "Transitions": {}
-      },
-      {
-        "Identifier": "4e2b5f43-8379-4b90-852b-930de11591de",
-        "Parameters": {
-          "Text": "Hello!"
-        },
-        "Transitions": {
-          "NextAction": "c2b9d7f7-36d3-4180-86aa-3f1957870e1a",
-          "Errors": [
-            {
-              "NextAction": "ac3808f0-8313-483a-ae5f-47e4acb83a53",
-              "ErrorType": "NoMatchingError"
-            }
-          ],
-          "Conditions": []
-        },
-        "Type": "MessageParticipant"
-      },
-      {
-        "Identifier": "c2b9d7f7-36d3-4180-86aa-3f1957870e1a",
-        "Parameters": {
-          "LambdaFunctionARN": "${var.lambda_function_arn}",
-          "InvocationTimeLimitSeconds": "3"
-        },
-        "Transitions": {
-          "NextAction": "ac3808f0-8313-483a-ae5f-47e4acb83a53",
-          "Errors": [
-            {
-              "NextAction": "ac3808f0-8313-483a-ae5f-47e4acb83a53",
-              "ErrorType": "NoMatchingError"
-            }
-          ],
-          "Conditions": []
-        },
-        "Type": "InvokeLambdaFunction"
-      }
-    ]
-  }
-JSON
-  tags = {
-    "Name"        = "${var.common_name} Contact Flow",
-    "MaintedBy" = "Terraform",
-  }
-}
+# resource "aws_connect_contact_flow" "my_contact_flow" {
+#   instance_id = aws_connect_instance.instance.id
+#   name        = "My Contact Flow"
+#   type        = "CONTACT_FLOW"
+#   content     = <<EOF
+#   {
+#   "Version": "1.0",
+#   "StartAction": "1",
+#   "Actions": [
+#     {
+#       "Identifier": "1",
+#       "Type": "PlayPrompt",
+#       "Parameters": {
+#         "Text": "Thank you for calling. Your call is important to us."
+#       },
+#       "SuccessAction": "2",
+#       "FailAction": "2"
+#     },
+#     {
+#       "Identifier": "2",
+#       "Type": "Disconnect"
+#     }
+#   ],
+#   "Metadata": {
+#     "Version": "1",
+#     "Status": "Published",
+#     "Name": "BasicContactFlow",
+#     "Description": "A basic contact flow example"
+#   }
+# }
+# EOF 
+# }
+# {
+#   "Version": "1.0",
+#   "StartAction": "1",
+#   "Actions": [
+#     {
+#       "Identifier": "1",
+#       "Type": "CheckContactAttributes",
+#       "Parameters": {
+#         "AttributeName": "agent_call_presentation",
+#         "AttributeValue": "elective"
+#       },
+#       "SuccessAction": "2",
+#       "FailAction": "3"
+#     },
+#     {
+#       "Identifier": "2",
+#       "Type": "Whisper",
+#       "Parameters": {
+#         "Text": "You have a call. Please accept to connect the customer."
+#       },
+#       "SuccessAction": "4"
+#     },
+#     {
+#       "Identifier": "3",
+#       "Type": "CheckContactAttributes",
+#       "Parameters": {
+#         "AttributeName": "transfer_to_queue",
+#         "AttributeValue": "true"
+#       },
+#       "SuccessAction": "5",
+#       "FailAction": "6"
+#     },
+#     {
+#       "Identifier": "4",
+#       "Type": "SetDisconnectFlow",
+#       "Parameters": {
+#         "ContactFlowId": "${var.disconnect_flow_id}"
+#       }
+#     },
+#     {
+#       "Identifier": "5",
+#       "Type": "SetQueue",
+#       "Parameters": {
+#         "QueueId": "${aws_connect_queue.queue.id}"
+#       }
+#     },
+#     {
+#       "Identifier": "6",
+#       "Type": "CheckContactAttributes",
+#       "Parameters": {
+#         "AttributeName": "transfer_to_agent_group",
+#         "AttributeValue": "true"
+#       },
+#       "SuccessAction": "7",
+#       "FailAction": "8"
+#     },
+#     {
+#       "Identifier": "7",
+#       "Type": "SetRoutingProfile",
+#       "Parameters": {
+#         "RoutingProfileId": "${var.routing_profile_id}"
+#       }
+#     },
+#     {
+#       "Identifier": "8",
+#       "Type": "Disconnect"
+#     }
+#   ],
+#   "Metadata": {
+#     "Version": "1",
+#     "Status": "Draft",
+#     "Description": "My Contact Flow Description"
+#   }
+# }
+# EOF
+# }

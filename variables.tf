@@ -18,8 +18,40 @@ variable "common_name" {
 variable "lambda_function_arn" {
   description = "ARN of the lambda function for association with connect instance"
 }
-variable "directory_id" {
-    type = string
-    description = "The directory id of the existing directory"
 
+variable "routing_profile_id" {
+  type = string
+  description = "Routing profile UUID"
+}
+
+variable "disconnect_flow_id" {
+  type = string
+  description = "Disconnect flor UUID"
+}
+
+variable "password" {
+  type = string
+  description = "User password"
+}
+
+variable "access_key" {
+  type = string
+  description = "AWS Access Key"
+}
+
+variable "secret_key" {
+  type = string
+  description = "AWS Secret Key"
+}
+
+variable "custom_transfer_queues" {
+  description = "List of custom transfer queues"
+  type        = list(string)
+  default     = []
+}
+
+variable "custom_transfer_agent_groups" {
+  description = "List of custom transfer agent groups"
+  type        = list(string)
+  default     = []
 }
