@@ -12,13 +12,6 @@ output "aws_connect_instance_id" {
   value = aws_connect_instance.instance.id
 }
 
-# Lambda function association
-
-# resource "aws_connect_lambda_function_association" "lambda_assoc" {
-#   function_arn = var.lambda_function_arn
-#   instance_id  = aws_connect_instance.instance.id
-# }
-
 # Hours of Operation
 
 resource "aws_connect_hours_of_operation" "hours_of_operation" {
@@ -55,35 +48,53 @@ resource "aws_connect_hours_of_operation" "hours_of_operation" {
 
 # Create a queue
 
-resource "aws_connect_queue" "queue" {
+resource "aws_connect_queue" "elective_queue" {
   instance_id           = aws_connect_instance.instance.id
-  name                  = "${var.common_name} Queue1"
-  description           = "Test Queue for Terraform"
-  hours_of_operation_id = aws_connect_hours_of_operation.hours_of_operation.hours_of_operation_id
-tags = {
-    "Name" = "${var.common_name} Test Queue",
+  name                  = "Elective Call Queue"
+  description           = "Queue for Elective Call Presentation"
+  hours_of_operation_id = aws_connect_hours_of_operation.hours_of_operation.id
+  tags = {
+    "Name" = "Elective Call Queue"
   }
 }
 
-# Routing profile
+output "aws_connect_elective_queue_id" {
+  value = aws_connect_queue.elective_queue.id
+}
 
-# resource "aws_connect_routing_profile" "elective_routing_profile" {
-#   instance_id = aws_connect_instance.instance.id
-#   name        = "Elective Call Presentation Profile"
-#   description = "Elective Call Presentation Profile"
-#   default_outbound_queue_id = aws_connect_queue.queue.id
-#   media_concurrencies {
-#     channel = "VOICE"
-#     concurrency = 1
+# resource "aws_connect_queue" "automatic_queue" {
+#   instance_id           = aws_connect_instance.instance.id
+#   name                  = "Automatic Call Queue"
+#   description           = "Queue for Automatic Call Presentation"
+#   hours_of_operation_id = aws_connect_hours_of_operation.hours_of_operation.id
+#   tags = {
+#     "Name" = "Automatic Call Queue"
 #   }
 # }
 
+# output "aws_connect_automatic_queue_id" {
+#   value = aws_connect_queue.automatic_queue.id
+# }
+
+# Routing profile
+
+resource "aws_connect_routing_profile" "elective_routing_profile" {
+  instance_id             = aws_connect_instance.instance.id
+  name                    = "Elective Call Presentation Profile"
+  description             = "Elective Call Presentation Profile"
+  default_outbound_queue_id = aws_connect_queue.elective_queue.id
+  media_concurrencies {
+    channel = "VOICE"
+    concurrency = 1
+  }
+}
+
 # resource "aws_connect_routing_profile" "automatic_routing_profile" {
-#   instance_id  = aws_connect_instance.instance.id
-#   name        = "Automatic Call Presentation Profile"
-#   description = "Automatic Call Presentation Profile"
-#   default_outbound_queue_id = aws_connect_queue.queue.id
-#     media_concurrencies {
+#   instance_id             = aws_connect_instance.instance.id
+#   name                    = "Automatic Call Presentation Profile"
+#   description             = "Automatic Call Presentation Profile"
+#   default_outbound_queue_id = aws_connect_queue.automatic_queue.id
+#   media_concurrencies {
 #     channel = "VOICE"
 #     concurrency = 1
 #   }
@@ -238,4 +249,13 @@ tags = {
 #   }
 # }
 # EOF
+# }
+
+
+
+# Lambda function association
+
+# resource "aws_connect_lambda_function_association" "lambda_assoc" {
+#   function_arn = var.lambda_function_arn
+#   instance_id  = aws_connect_instance.instance.id
 # }
