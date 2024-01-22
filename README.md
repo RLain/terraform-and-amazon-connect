@@ -16,6 +16,7 @@ Learning Terraform and Amazon Connect
 - $ terraform init
 - $ terraform plan
 - $ terraform apply -auto-approve
+- $ terraform force-unlock -force my_lock_id
 
 ## Resources
 
@@ -25,3 +26,4 @@ Learning Terraform and Amazon Connect
 - https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-migration-connect/welcome.html
 - https://k21academy.com/terraform-iac/terraform-beginners-guide/
 - https://registry.terraform.io/providers/hashicorp/aws/latest/docs
+- https://medium.com/@nikhil.nagarajappa/terraforms-force-unlock-command-manually-unlocking-state-configuration-a39e75f7ca51
